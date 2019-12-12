@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>02_数据代理</title>
+</head>
+<body>
+
+<!--
+1. vue数据代理: data对象（配置对象中定义的data）的所有属性的操作(读/写)由vm对象来代理操作
+                // 将data对象保存到【实例对象vm】和【局部变量data】上
+                var data = this._data = this.$options.data;
+2. 好处: 通过vm对象就可以方便的操作data中的数据（原始的写法是：vm._data.name ;现在写是vm.name）
+3. 实现:
+  1). 通过Object.defineProperty(vm, key, {})给vm对象添加与data对象的属性（同名的）对应的属性
+  2). 所有添加的属性都包含get/set方法
+  3). 在get/set方法中去操作data中对应的属性
+  get：当通过vm.xxx读取属性值时自动调用，读取data中对应的属性值返回
+  set：当通过vm.xxx = value修改属性时, 自动调用；将最新的值保存到data对应的属性上
+-->
+
+<!-- 
+    1 通过new MVVM创建vm对象 -> 2 进入mvvm.js的MVVM构造函数中
+    
+
+ -->
+<div id="test"></div>
+
+<script src="./js/mvvm/compile.js"></script>
+<script src="./js/mvvm/mvvm.js"></script>
+<script src="./js/mvvm/observer.js"></script>
+<script src="./js/mvvm/watcher.js"></script>
+<script>
+  debugger
+  // vm对象
+  const vm = new MVVM({
+    // data对象
+    data: {
+      name: 'tom2'
+    }
+  })
+  console.log(vm) 
+  // 先执行v.name，再执行get方法，最后停在v.name处
+  console.log(vm.name, vm._data.name) // tom2  代理读
+
+  vm.name = 'jack2' // 代理写
+  console.log(vm.name, vm._data.name) // jack2
+
+
+
+</script>
+
+</body>
+</html>

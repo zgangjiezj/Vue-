@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<!-- div下有一个文本节点,内容为“尚硅谷IT教育” -->
+<div id="test">尚硅谷IT教育</div>
+
+<!-- div下有一个空白文本节点，一个ul节点，一个空白的文本节点 -->
+<div id="demo"> 
+  <ul>
+    <li>test1</li>
+    <li>test2</li>
+    <li>test3</li>
+  </ul>
+</div>
+
+<!--
+要点：
+  1》操作dom得到的都是伪数组，可以看做是对象
+  2》方法是个特殊的属性，属性值是个函数；通过属性名取属性值
+
+1. [].slice.call(lis): 将伪数组转换为真数组
+2. node.nodeType: 得到节点类型
+3. Object.defineProperty(obj, propertyName, {}): 给对象添加属性(指定描述符)
+4. Object.keys(obj): 得到对象自身可枚举属性组成的数组
+5. obj.hasOwnProperty(prop): 判断prop是否是obj自身的属性
+6. DocumentFragment: 文档碎片(高效批量更新多个节点)
+-->
+
+<script type="text/javascript">
+  // 1. [].slice.call(lis): 将伪数组转换为真数组
+  const lis = document.getElementsByTagName('li') // lis是伪数组，操作dom得到的都是伪数组
+  console.log(lis.forEach, lis instanceof Array, Array.isArray(lis)) // lis.forEach==>通过lis的属性forEach取值，没有该属性为undefined ;
+                                                                     //lis.forEach(),报错==》实际为undefined(),undefined不是function
+  const lis2 = Array.from(lis) // es6语法: 将伪数组转换为真数组
+  console.log(lis2.forEach, lis2 instanceof Array, Array.isArray(lis2)) // lis2.forEach，根据属性名取属性值，为function方法
+  lis2.slice()  //不传参相当于浅拷贝 ==》例： [1, 2, 3, 4, 5].slice(1)
+
+  const lis3 = Array.prototype.slice.call(lis) // 相当于lis.slice()
+  console.log(lis3.forEach, lis3 instanceof Array, Array.isArray(lis3))
+
+//自定义slice()方法：遍历数组，push到数组中
+//                                 不传参相当于浅拷贝
+  // Array.prototype.slice2 = function () {
+  //   const arr = []
+  //   for (let index = 0; index < this.length; index++) {
+  //     arr.push(this[index])
+  //   }
+  //   return arr
+  // }
+
+  // 2. node.nodeType: 得到节点类型
+  // 节点的类型：Document,Element(包含：attr，text),
+
+  // <div id="test">尚硅谷IT教育</div>
+  const elementNode = document.getElementById('test') //元素节点 1
+  const attrNode = elementNode.getAttributeNode('id') //属性节点(通过属性标签id) 2 
+  const textNode = elementNode.firstChild // textNode.textContent==='尚硅谷IT教育' // 文本节点 3
+  console.log(elementNode.nodeType, attrNode.nodeType, textNode.nodeType)
+
+  // 3. Object.defineProperty(obj, propertyName, {}): 给对象添加属性(指定描述符，包括数据描述符和存取描述符)
+  const p = {
+    firstName: 'A',
+    lastName: 'B'
+  }
+  Object.defineProperty(p, 'fullName', { // 属性描述符
+    // 1、数据描述符
+    configurable: false, // true/false  是否可以重新define
+    enumerable: false, // true/false 是否可以枚举(for..in / keys())
+    // value: 'A-B', // 指定初始值，==>有get不用它,get是用来生成value
+    // writable: false, // true/false value是否可以修改 ==》有set不用它
+    // 2、存取描述符
+    get () {
+      return this.firstName + '-' + this.lastName
+    },
+    set (value) {
+      const names = value.split('-')
+      this.firstName = names[0]
+      this.lastName = names[1]
+    }
+  })
+
+  // 4. Object.keys(obj): 得到对象【自身】可枚举属性组成的数组
+  console.log(Object.keys(p))
+
+  // 5. obj.hasOwnProperty(prop): 判断prop是否是obj自身的属性
+  console.log(p.hasOwnProperty('fullName'), p.hasOwnProperty(p.toString))
+                   // p.toString==》通过属性值取属性名 ，结果为方法
+
+  // 6. DocumentFragment: 文档碎片(高效批量更新多个节点) ==》解析编译基本的三步
+  // 原理：举例div下有ul，ul下有多个li,先创建空的fragment容器，将div中所有子节点转移为fragment的子节点，包括li也放入了fragment的容器里，遍历所有的li更新li,但是此时不更新界面，
+  //      将fragment添加为div的子节点，fragment本身不会进入div, fragment的所有子节点进入div，此时是批量更新
+
+
+    //    // 模板解析的三步：
+    //    if (this.$el) {
+    //     // 1. 将el元素中的所有子节点保存到一个fragment容器中
+    //     this.$fragment = this.node2Fragment(this.$el);
+    //     // 2. 编译fragment中所有层次子节点(通过递归调用)
+    //     this.init();
+    //     // 3. 将编译好的fragment添加到el元素中
+    //     this.$el.appendChild(this.$fragment);
+    // }
+
+  // 一个fragment对象就是内存中的节点容器(只存在于内存)
+  /*
+  ---》div下有一个空白文本节点，一个ul节点，一个空白的文本节点 
+  <div id="demo">
+    <ul>
+      <li>atguigu</li>
+      <li>atguigu</li>
+      <li>atguigu</li>
+      <li>atguigu</li>
+      <li>atguigu</li>
+      <li>atguigu</li>
+    </ul>
+  </div>
+  */
+
+  const div = document.getElementById('demo')
+  // 1、创建空的fragment容器
+  const fragment = document.createDocumentFragment()
+  // 2、将div中所有子节点转移为fragment的子节点
+  let child
+  while(child=div.firstChild) {
+    fragment.appendChild(child) // 一个节点只能有一个父节点,子节点child从div下转移到fragment下
+  }
+  // 处理fragment中所有li--》遍历所有的li，添加内容  childNdes-》所有的子节点，children-》所有的子元素节点
+  const lis5 = fragment.children[0].children  // 取到fragment里ul下的li 
+  Array.prototype.slice.call(lis5).forEach(li => {
+    li.innerHTML = 'atguigu' // 此时不更新界面
+  })
+  // 3、将fragment添加为div的子节点
+  div.appendChild(fragment) // fragment本身不会进入div, fragment的所有子节点进入div  ==> 此时批量更新
+
+</script>
+</body>
+</html>

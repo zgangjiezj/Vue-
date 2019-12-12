@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>03_模板解析_表达式_vue</title>
+  <!-- 
+调试过程：进入 MVVM构造函数 --》进入Compile构造函数 --》进入init()方法 --》进入compileElement方法
+         --》进入 compileText方法 --》进入compileUtil方法 --》进入bind()方法，该方法是真正用于编译模板语法的方法
+         --》updaterFn对象，包含n个用于更新真实DOM的方法的工具对象
+
+ 模板解析插值：编译解析后将{{}}去掉，因此由<p>{{name}}</p>解析为<p>Tom</p>
+              给当前的文本节点，指定textContent属性，属性值为插值语法包含的表达式去data中找，通过正则匹配得到表达式
+
+
+exp：表达式；dir:指令名
+
+
+模板解析的作用：实现界面的初始化显示
+
+   -->
+</head>
+<body>
+  <div id="test">
+    <p>{{name}}</p>  <!-- textNode.textContent = value -->
+  </div>
+
+  <script src="./js/mvvm/compile.js"></script>
+  <script src="./js/mvvm/mvvm.js"></script>
+  <script src="./js/mvvm/observer.js"></script>
+  <script src="./js/mvvm/watcher.js"></script>
+  <script>
+    new MVVM({
+      el: '#test',
+      data: {
+        name: 'Tom'
+      }
+    })
+  </script>
+
+</body>
+</html>

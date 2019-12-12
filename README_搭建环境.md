@@ -11,8 +11,14 @@
 
 ## 2. webpack基本使用
     1). 下载依赖包
-        yarn add -D webpack webpack-cli
-        yarn add -D html-webpack-plugin
+  1》webpack：打包js ；webpack-cli提供命令 
+  2》没有全局安装webpack，不能直接使用webpack命令，
+    1>用npx webpack，可以用局部安装的webpack进行打包处理  
+    2>package.json中配置：build：'webpack --mode production'==>直接敲 yarn build  
+         先找局部webpack，局部没有再找全局webpack
+
+        yarn add -D webpack webpack-cli  //打包js，提供命令
+        yarn add -D html-webpack-plugin //自动引入打包生成的js或者css 
 
     2). 创建webpack配置: webpack.config.js
         const path = require('path')
@@ -52,10 +58,10 @@
 
 ## 3. 开发环境运行
     1). 现在的问题:
-        每次修改项目代码后, 必须重新打包, 重新运行
+        每次修改项目代码后, 必须手动重新打包, 重新运行
     
     2). 下载依赖包
-        yarn add -D webpack-dev-server
+        yarn add -D webpack-dev-server // 自动编译打包运行，修改代码自动重新打包刷新浏览器，不需要手动操作 （9:31）
     
     3). 配置开发服务器
         devServer: {
@@ -63,18 +69,18 @@
           quiet: true, // 不做太多日志输出
         },
     
-    4). 配置开启source-map调试
+    4). 配置开启source-map调试  ==》调试，哪个源文件的哪一行出现错误
         devtool: 'cheap-module-eval-source-map',
 
     5). 开发环境运行
         配置命令: "dev": "webpack-dev-server --mode development"
         执行命令: yarn dev
 
-## 4. 打包处理 ES6/CSS/图片
+## 4. 打包处理 ES6/CSS/图片 ===》loader
     1). 处理ES6
         a. 下载依赖包
-            yarn add -D babel-loader @babel/core @babel/preset-env
-        b. 配置
+            yarn add -D babel-loader @babel/core @babel/preset-env // es6转es5 /jsx转js
+        b. 配置  //模块加载器里写
             {
               test: /\.js$/,
               //exclude: /(node_modules|bower_components)/,
@@ -89,7 +95,7 @@
     
     2). 处理CSS
         a. 下载依赖包
-            yarn add -D css-loader style-loader
+            yarn add -D css-loader style-loader  //
         b. 配置
             {
               test: /\.css$/,
@@ -98,7 +104,7 @@
 
     3). 处理图片
         a. 下载依赖包
-            yarn add -D url-loader@2.3.0 file-loader@4.3.0
+            yarn add -D url-loader@2.3.0 file-loader@4.3.0  // 使用这两个是因为node版本低，可以配合使用。
         b. 配置
             {
               test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
@@ -159,6 +165,44 @@
     3). 编码: 
         src/App.vue
         src/index.js
+webpack-dev-server中解决跨域的配置 
+新语法浏览器不支持：corejs
+配置mint-UI出错（视频16：00时）
+        
+## 区分使用生产环境与开发环境
+    使用生产环境:（怎么用这个环境--》执行了什么命令，要干什么（作用））
+        npm run build   ==> webpack  
+        1). 在内存中进行编译打包, 生成内存中的打包文件
+        2). 保存到本地(在本地生成打包文件)   ===> 此时还不能通过浏览器来访问, 需要启动服务器运行
+    使用开发环境
+        npm run dev   ==> webpack-dev-server
+        1). 在内存中进行编译打包, 生成内存中的打包文件
+        2). 调动服务器, 运行内存中的打包文件（不生成本地打包文件）===> 可以通过浏览器虚拟路径访问
+##  依赖包与依赖声明
+    运行时依赖：dependencies
+         运行时用，
+         敲命令时，没写-D，保存在运行时依赖中
+    开发时依赖：devDependencies
+         编译打包的时候用；
+         删掉devDependencies中的所有，也可正常编译打包，运行，因为真正编译打包时靠的是node_moudles，但是可以根据依赖声明下载node_moudles中的所有包。（其他电脑没有node_moudles的文件夹时，根据依赖声明下载包，依赖声明在package.json中）
+
+     依赖声明："webpack-dev-server": "^3.9.0"
+
+    dependencies:用于实现功能
+    devDepenencies:开发依赖  ===》里面全都是直接依赖的包，还有间接依赖的包
+
+## git的六个步骤（图）
+    具体操作：
+        1、创建本地仓库
+              建立.gitignore文件
+              git init  == 工作区
+              git add * ==工作区的放到暂存区
+              git commit  -m '' ==将暂存区的放到版本区
+        2、创建远程仓库（空）
+        3、将本地代码推送到远程仓库：git push origin master
+        4、  本地写新文件或修改文件，本地管理好再推送到远程。
+        5、远程写新文件或修改文件，本地拉取
+        6、clone
 
 ## 6. 解决开发环境ajax请求跨域问题
     1). 利用webpack-dev-server进行请求代理转发
@@ -169,15 +213,16 @@
             // 处理以/api开头路径的请求
             // '/api': 'http://localhost:4000'
             '/api': {
-              target: 'http://localhost:4000', // 转发的目标地址
+              target: 'http://localhost:4000', // 转发的目标地址（要请求的服务器的地址）
               pathRewrite: {
                 '^/api' : ''  // 转发请求时去除路径前面的/api
               },
-              changeOrigin: true, // 支持跨域
+              changeOrigin: true, // 支持跨域,如果协议/主机也不相同, 必须加上
             }
           }
         }
-
+    3)具体的实现：（视频9:00）
+        浏览器的地址栏的地址以/api开头，发请求，
 ## 7. 配置async/await的编译环境
     1). 下载包
         yarn add @babel/runtime-corejs2
@@ -185,7 +230,7 @@
         presets: [
           ['@babel/preset-env', {
             useBuiltIns: 'usage',
-            'corejs': 2 // 处理一些新语法的实现
+            'corejs': 2 // 处理一些新语法的实现(async/await的语法也是它解析的)
           }]
         ]
 
